@@ -14,7 +14,6 @@ class Dictionary(object):
     def __init__(self, path):
         self.word2idx = {}
         self.idx2word = []
-        self.idx2sflg = []
         self.word2freq = defaultdict(int)
 
         vocab_path = os.path.join(path, 'vocab.txt')
@@ -22,10 +21,7 @@ class Dictionary(object):
             vocab = open(vocab_path, encoding="utf8").read()
             self.word2idx = {w: i for i, w in enumerate(vocab.split())}
             self.idx2word = [w for w in vocab.split()]
-            self.idx2sflg = [1 if (w[-1]=='s' or w[-1]=='S') else 0 for w in vocab.split()]
             self.vocab_file_exists = True
-#            for pair in zip(self.idx2word,self.idx2sflg):
-#                print(pair[0]," ",pair[1])
         except FileNotFoundError:
             logging.info("Vocab file not found, creating new vocab file.")
             self.create_vocab(os.path.join(path, 'train.txt'))

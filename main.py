@@ -1,6 +1,9 @@
-# adapted from https://github.com/facebookresearch/colorlessgreenRNNs
-# who in turn adapted it from
-# https://github.com/pytorch/examples
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
+#
 
 import argparse
 import logging
@@ -101,7 +104,6 @@ def train():
 
     for batch, i in enumerate(range(0, train_data.size(0) - 1, args.bptt)):
         data, targets = get_batch(train_data, i, args.bptt)
-        println(data)
         # truncated BPP
         hidden = repackage_hidden(hidden)
         model.zero_grad()
