@@ -47,6 +47,10 @@ class RNNModel(nn.Module):
         self.nhid = nhid
         self.nlayers = nlayers
 
+        #self.emb_size=0
+        #self.input_size=0
+        #self.output_size=0
+
     def init_weights(self):
         initrange = 0.1
         self.encoder.weight.data.uniform_(-initrange, initrange)
@@ -55,8 +59,12 @@ class RNNModel(nn.Module):
 
     def forward(self, input, hidden):
         emb = self.drop(self.encoder(input))
+        #self.emb_size=emb.size()
+        #self.input_size=input.size()
+        
         output, hidden = self.rnn(emb, hidden)
         output = self.drop(output)
+        #self.output_size=output.size()
         #print(output)
         decoded = self.decoder(output.view(output.size(0)*output.size(1), output.size(2)))
 

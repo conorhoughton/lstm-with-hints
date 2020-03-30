@@ -95,7 +95,6 @@ with open(args.checkpoint, 'rb') as f:
     else:
         # to convert model trained on cuda to cpu model
         model = torch.load(f, map_location = lambda storage, loc: storage)
-
 model.eval()
 
 if args.cuda:

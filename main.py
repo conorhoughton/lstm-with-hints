@@ -108,6 +108,12 @@ def train():
         hidden = repackage_hidden(hidden)
         model.zero_grad()
         output, hidden = model(data, hidden)
+        logging.info(data)
+        logging.info()
+        #logging.info("sizes")
+        #logging.info(model.emb_size)
+        #logging.info(model.input_size)
+        #logging.info(model.output_size)
 
         loss = criterion(output.view(-1, ntokens), targets)
         loss.backward()
