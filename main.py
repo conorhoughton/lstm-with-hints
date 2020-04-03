@@ -52,7 +52,9 @@ train_data = batchify(corpus.train, args.batch_size, args.cuda)
 val_data = batchify(corpus.valid, eval_batch_size, args.cuda)
 test_data = batchify(corpus.test, eval_batch_size, args.cuda)
 
+#test_indices=torch.tensor([0,1,2,3,4,5,6,7,8,9,10])
 
+#logging.info(corpus.dictionary.idx2sflg[test_indices])
 
 criterion = nn.CrossEntropyLoss()
 
@@ -65,7 +67,8 @@ logging.info("Building the model")
 model = model.RNNModel(args.model, ntokens, args.emsize, args.nhid, args.nlayers, args.dropout, args.tied)
 if args.cuda:
     model.cuda()
-
+    corpus.dictionary.idx2sflg=corpus.dictionary.idx2sflg.cuda()
+    
 
 
 ###############################################################################
@@ -73,7 +76,7 @@ if args.cuda:
 ###############################################################################
 
 
-def evaluate(data_source):
+def evaluate(data_source,silent_s=False):
     # Turn on evaluation mode which disables dropout.
     model.eval()
     total_loss = 0
@@ -83,7 +86,11 @@ def evaluate(data_source):
         for i in range(0, data_source.size(0) - 1, args.bptt):
             data, targets = get_batch(data_source, i, args.bptt)
             #> output has size seq_length x batch_size x vocab_size
-            output, hidden = model(data, hidden)
+            if silent_s:
+                sflg=corpus.dictionary.idx2zero[data]
+            else:
+                sflg=corpus.dictionary.idx2sflg[data]
+            output, hidden = model((data,sflg), hidden)
             #> output_flat has size num_targets x vocab_size (batches are stacked together)
             #> ! important, otherwise softmax computation (e.g. with F.softmax()) is incorrect
             output_flat = output.view(-1, ntokens)
@@ -104,12 +111,14 @@ def train():
 
     for batch, i in enumerate(range(0, train_data.size(0) - 1, args.bptt)):
         data, targets = get_batch(train_data, i, args.bptt)
+        sflg=corpus.dictionary.idx2sflg[data]
+
         # truncated BPP
         hidden = repackage_hidden(hidden)
         model.zero_grad()
-        output, hidden = model(data, hidden)
-        logging.info(data)
-        logging.info()
+        output, hidden = model((data,sflg), hidden)
+
+
         #logging.info("sizes")
         #logging.info(model.emb_size)
         #logging.info(model.input_size)
@@ -146,12 +155,19 @@ try:
 
         train()
 
-        val_loss = evaluate(val_data)
+        val_loss = evaluate(val_data,False)
         logging.info('-' * 89)
         logging.info('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
                 'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
                                            val_loss, math.exp(val_loss)))
         logging.info('-' * 89)
+        val_loss_silent = evaluate(val_data,True)
+        logging.info('-' * 89)
+        logging.info('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.2f} | '
+                'valid ppl {:8.2f}'.format(epoch, (time.time() - epoch_start_time),
+                                           val_loss_silent, math.exp(val_loss_silent)))
+        logging.info('-' * 89)
+
         # Save the model if the validation loss is the best we've seen so far.
         if not best_val_loss or val_loss < best_val_loss:
             with open(args.save, 'wb') as f:

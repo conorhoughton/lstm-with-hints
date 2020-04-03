@@ -1,4 +1,4 @@
-# Copyright (c) 2018-present, Facebook, Inc.
+1# Copyright (c) 2018-present, Facebook, Inc.
 # All rights reserved.
 #
 # This source code is licensed under the license found in the
@@ -9,6 +9,7 @@ import os
 import torch
 from collections import defaultdict
 import logging
+import numpy as np
 
 class Dictionary(object):
     def __init__(self, path):
@@ -22,7 +23,8 @@ class Dictionary(object):
             vocab = open(vocab_path, encoding="utf8").read()
             self.word2idx = {w: i for i, w in enumerate(vocab.split())}
             self.idx2word = [w for w in vocab.split()]
-            self.idx2sflg = [1 if (w[-1]=='s' or w[-1]=='S') else 0 for w in vocab.split()]
+            self.idx2sflg = [1.0 if (w[-1]=='s' or w[-1]=='S') else -1.0 for w in vocab.split()]
+
             self.vocab_file_exists = True
 #            for pair in zip(self.idx2word,self.idx2sflg):
 #                print(pair[0]," ",pair[1])
@@ -30,6 +32,9 @@ class Dictionary(object):
             logging.info("Vocab file not found, creating new vocab file.")
             self.create_vocab(os.path.join(path, 'train.txt'))
             open(vocab_path,"w").write("\n".join([w for w in self.idx2word]))
+
+        self.idx2sflg = torch.tensor(self.idx2sflg,dtype=torch.float)
+        self.idx2zero = torch.zeros_like(self.idx2sflg)
 
     def add_word(self, word):
         self.word2freq[word] += 1

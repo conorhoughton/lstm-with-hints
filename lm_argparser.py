@@ -38,7 +38,6 @@ lm_parser.add_argument('--batch_size', type=int, default=20, metavar='N',
 lm_parser.add_argument('--bptt', type=int, default=35,
                        help='sequence length')
 
-
 lm_parser.add_argument('--seed', type=int, default=1111,
                        help='random seed')
 lm_parser.add_argument('--cuda', action='store_true',
